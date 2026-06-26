@@ -14,7 +14,8 @@ from tests.helpers import load_script
 D = 8
 
 
-def fake_extract(model, tok, sentences, layers, max_seq_len, batch_size, desc="x"):
+def fake_extract(model, tok, sentences, layers, max_seq_len, batch_size, desc="x",
+                 include_embedding=False):
     """Deterministic per-sentence vectors: identical corpora -> identical activations."""
     seed = abs(hash(tuple(sentences))) % (2 ** 32)
     rng = np.random.default_rng(seed)

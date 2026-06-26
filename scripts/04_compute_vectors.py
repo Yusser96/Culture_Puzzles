@@ -45,6 +45,7 @@ from shared_utils.data import (
 from shared_utils.vectors import diffmean_vector, save_vectors
 from shared_utils.model import get_model_and_tokenizer, get_num_layers, get_layers_to_probe
 from shared_utils.activation_extraction import extract_activations_batch
+from shared_utils.embeddings import save_embedding_store, build_group_map
 
 logger = setup_logging("compute_vectors")
 
@@ -102,7 +103,8 @@ def load_cultural_source(cultural_dir: str) -> Dict[tuple, List[str]]:
 
 # -- Activation extraction with content dedup ----------------------------------
 
-def extract_for_keys(model, tokenizer, key_to_sents, layers, max_seq_len, batch_size):
+def extract_for_keys(model, tokenizer, key_to_sents, layers, max_seq_len, batch_size,
+                     include_embedding=False):
     """
     Extract per-key activations, computing identical corpora only once (shared
     FLORES/Wikipedia baselines replicate across same-language regions).
@@ -122,7 +124,8 @@ def extract_for_keys(model, tokenizer, key_to_sents, layers, max_seq_len, batch_
         logger.info(f"    extracting {rep} ({len(sents)} sents)"
                     + (f" [shared by {len(groups[rep])}]" if len(groups[rep]) > 1 else ""))
         acts_by_rep[rep] = extract_activations_batch(
-            model, tokenizer, sents, layers, max_seq_len, batch_size
+            model, tokenizer, sents, layers, max_seq_len, batch_size,
+            include_embedding=include_embedding,
         )
 
     acts = {}
@@ -133,6 +136,12 @@ def extract_for_keys(model, tokenizer, key_to_sents, layers, max_seq_len, batch_
         if len(members) > 1:
             shared_groups[rep] = sorted(members)
     return acts, shared_groups
+
+
+def _emb_layers(cfg, layers):
+    depth = cfg.get("analysis", {}).get("depth_layers")
+    chosen = layers if not depth else [l for l in depth if l in layers]
+    return ["embed"] + list(chosen)
 
 
 # -- DiffMean over a set of classes --------------------------------------------
@@ -184,48 +193,81 @@ def save_vector_set(out_dir, vectors, acts_by_key, layers, key_prefix,
 
 # -- Per-source drivers --------------------------------------------------------
 
-def process_flat(model, tok, cfg, layers, name, data_dir, key_prefix, out_base, mirror_base=None):
+def process_flat(model, tok, cfg, layers, name, data_dir, key_prefix, out_base,
+                 mirror_base=None, emb_base=None):
     key_to_sents = load_flat_source(data_dir)
     if len(key_to_sents) < 2:
         logger.warning(f"  [{name}] need >=2 classes, found {len(key_to_sents)}; skipping.")
         return None
+    inc = cfg["model"].get("include_embedding_layer", False)
     acts, shared = extract_for_keys(
         model, tok, key_to_sents, layers,
-        cfg["model"]["max_seq_len"], cfg["model"]["batch_size"],
+        cfg["model"]["max_seq_len"], cfg["model"]["batch_size"], include_embedding=inc,
     )
     vectors = diffmean_set(acts, layers)
     mirror = os.path.join(mirror_base, name) if mirror_base else None
-    return save_vector_set(os.path.join(out_base, name), vectors, acts, layers,
+    meta = save_vector_set(os.path.join(out_base, name), vectors, acts, layers,
                            key_prefix, shared, {"source": name}, mirror)
+    if inc and emb_base:
+        gm = build_group_map(cfg, name, list(key_to_sents.keys()))
+        save_embedding_store(os.path.join(emb_base, name), acts, _emb_layers(cfg, layers),
+                             key_prefix, gm)
+    return meta
 
 
-def process_puzzles(model, tok, cfg, layers, variant, puzzles_dir, out_base):
+def process_puzzles(model, tok, cfg, layers, variant, puzzles_dir, out_base, emb_base=None):
     name = f"puzzles_{variant}"
     key_to_sents = load_puzzles_source(puzzles_dir, variant)
     if len(key_to_sents) < 2:
         logger.warning(f"  [{name}] need >=2 regions, found {len(key_to_sents)}; skipping.")
         return None
+    inc = cfg["model"].get("include_embedding_layer", False)
     acts, shared = extract_for_keys(
         model, tok, key_to_sents, layers,
-        cfg["model"]["max_seq_len"], cfg["model"]["batch_size"],
+        cfg["model"]["max_seq_len"], cfg["model"]["batch_size"], include_embedding=inc,
     )
     vectors = diffmean_set(acts, layers)
-    return save_vector_set(os.path.join(out_base, name), vectors, acts, layers,
+    meta = save_vector_set(os.path.join(out_base, name), vectors, acts, layers,
                            "puzzle_", shared, {"source": name})
+    if inc and emb_base:
+        gm = build_group_map(cfg, name, list(key_to_sents.keys()))
+        save_embedding_store(os.path.join(emb_base, name), acts, _emb_layers(cfg, layers),
+                             "puzzle_", gm)
+    return meta
 
 
-def process_topics(model, tok, cfg, layers, cultural_dir, out_base, mirror_dir):
+def process_topics(model, tok, cfg, layers, cultural_dir, out_base, mirror_dir, emb_base=None):
     """Topic vectors (pooled across regions) + culture vectors (topic x region)."""
     pair_to_sents = load_cultural_source(cultural_dir)
     if not pair_to_sents:
         logger.warning("  [topics] no cultural data found; skipping.")
         return None
 
+    inc = cfg["model"].get("include_embedding_layer", False)
     acts, _ = extract_for_keys(
         model, tok, pair_to_sents, layers,
-        cfg["model"]["max_seq_len"], cfg["model"]["batch_size"],
+        cfg["model"]["max_seq_len"], cfg["model"]["batch_size"], include_embedding=inc,
     )
     topics = sorted({t for (t, _r) in acts})
+
+    if inc and emb_base:
+        emb_layers = _emb_layers(cfg, layers)
+        # culture: each (topic, region) pair
+        culture_acts = {f"{t}_{r}": acts[(t, r)] for (t, r) in acts}
+        save_embedding_store(os.path.join(emb_base, "culture"), culture_acts, emb_layers,
+                             "culture_", build_group_map(cfg, "culture", list(culture_acts)))
+        # topics: pool all regions per topic, per layer
+        topic_acts = {}
+        for t in topics:
+            per_layer = {}
+            for L in emb_layers:
+                parts = [acts[(tt, r)][L] for (tt, r) in acts if tt == t]
+                if parts:
+                    per_layer[L] = np.concatenate(parts, axis=0)
+            if per_layer:
+                topic_acts[t] = per_layer
+        save_embedding_store(os.path.join(emb_base, "topics"), topic_acts, emb_layers,
+                             "topic_", build_group_map(cfg, "topics", list(topic_acts)))
     out_dir = os.path.join(out_base, "topics")
     os.makedirs(out_dir, exist_ok=True)
     os.makedirs(mirror_dir, exist_ok=True)
@@ -279,6 +321,7 @@ def main():
     vec_dir = cfg["paths"]["va_vector_dir"]
     lang_mirror = cfg["paths"]["va_language_vector_dir"]
     topic_mirror = cfg["paths"]["va_topic_vector_dir"]
+    emb_dir = cfg["paths"]["va_embeddings_dir"]
 
     model, tokenizer = get_model_and_tokenizer(cfg)
     num_layers = get_num_layers(model)
@@ -294,23 +337,25 @@ def main():
 
     logger.info("Source: parallel/flores")
     record("flores", process_flat(model, tokenizer, cfg, layers, "flores",
-            os.path.join(parallel_dir, "flores"), "lang_", vec_dir, lang_mirror))
+            os.path.join(parallel_dir, "flores"), "lang_", vec_dir, lang_mirror,
+            emb_base=emb_dir))
 
     logger.info("Source: parallel/opus100")
     record("opus100", process_flat(model, tokenizer, cfg, layers, "opus100",
-            os.path.join(parallel_dir, "opus100"), "lang_", vec_dir, lang_mirror))
+            os.path.join(parallel_dir, "opus100"), "lang_", vec_dir, lang_mirror,
+            emb_base=emb_dir))
 
     logger.info("Source: puzzles/original")
     record("puzzles_original", process_puzzles(model, tokenizer, cfg, layers,
-            "original", puzzles_dir, vec_dir))
+            "original", puzzles_dir, vec_dir, emb_base=emb_dir))
 
     logger.info("Source: puzzles/translation")
     record("puzzles_translation", process_puzzles(model, tokenizer, cfg, layers,
-            "translation", puzzles_dir, vec_dir))
+            "translation", puzzles_dir, vec_dir, emb_base=emb_dir))
 
     logger.info("Source: cultural/topics")
     record("topics", process_topics(model, tokenizer, cfg, layers,
-            cultural_dir, vec_dir, topic_mirror))
+            cultural_dir, vec_dir, topic_mirror, emb_base=emb_dir))
 
     save_json(all_meta, os.path.join(vec_dir, "metadata.json"))
     logger.info(f"\nVector computation complete. Sources: {all_meta['sources']}")

@@ -100,5 +100,46 @@ class TestStructureMetrics(unittest.TestCase):
         self.assertAlmostEqual(r["ari"], 1.0, places=5)
 
 
+import importlib.util
+from tests.helpers import SCRIPTS_DIR
+
+
+def _fake_extract_with_embed(model, tok, sentences, layers, max_seq_len, batch_size,
+                             desc="x", include_embedding=False):
+    D = 4
+    rng = np.random.default_rng(abs(hash(tuple(sentences))) % (2**32))
+    base = rng.standard_normal((len(sentences), D))
+    out = {l: base + l * 0.01 for l in layers}
+    if include_embedding:
+        out["embed"] = base - 1.0
+    return out
+
+
+class TestZeroFourEmbeddingStore(unittest.TestCase):
+    def setUp(self):
+        spec = importlib.util.spec_from_file_location(
+            "cv_emb", os.path.join(SCRIPTS_DIR, "04_compute_vectors.py"))
+        self.cv = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.cv)
+        self.cv.extract_activations_batch = _fake_extract_with_embed
+
+    def test_process_flat_writes_embedding_store(self):
+        cfg = load_config(CONFIG_PATH)
+        cfg["model"]["include_embedding_layer"] = True
+        d = tempfile.mkdtemp()
+        data = os.path.join(d, "flores")
+        os.makedirs(data)
+        for r in ["Arabic_Egypt", "French_France", "German_Germany"]:
+            with open(os.path.join(data, f"{r}.txt"), "w") as f:
+                f.write("\n".join(f"{r} s{i}" for i in range(4)) + "\n")
+        self.cv.process_flat(None, None, cfg, [0], "flores", data, "lang_",
+                             os.path.join(d, "vectors"), None,
+                             emb_base=os.path.join(d, "embeddings"))
+        store = os.path.join(d, "embeddings", "flores")
+        self.assertTrue(os.path.exists(os.path.join(store, "layer_embed.npz")))
+        z = np.load(os.path.join(store, "layer_embed.npz"))
+        self.assertIn("lang_Arabic_Egypt", z.files)
+
+
 if __name__ == "__main__":
     unittest.main()

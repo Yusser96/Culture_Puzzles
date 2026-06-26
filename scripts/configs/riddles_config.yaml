@@ -24,6 +24,7 @@ model:
   # dtype: "float16" | "bfloat16" | "float32".
   # On Apple MPS, float16 is the safe choice (bfloat16 support is partial).
   dtype: "float16"
+  include_embedding_layer: true
 
 # =============================================================================
 # Data collection settings
@@ -43,6 +44,7 @@ analysis:
   seed: 42
   n_pca_components: 3
   significance_level: 0.05
+  depth_layers: null  # null = all probed layers; or a list like [0, 7, 14, 21, 27]
 
 # =============================================================================
 # Output paths
@@ -59,6 +61,9 @@ paths:
   # Backward-compatible trees written by 04 so 05/06 keep working unchanged.
   va_language_vector_dir: "/Volumes/Extreme SSD/dfki/2026/Culture_puzzles/vector_analysis/results/vectors/language_vectors"
   va_topic_vector_dir:    "/Volumes/Extreme SSD/dfki/2026/Culture_puzzles/vector_analysis/results/vectors/topic_vectors"
+  va_embeddings_dir:      "/Volumes/Extreme SSD/dfki/2026/Culture_puzzles/vector_analysis/results/embeddings"
+  va_analysis_dir:        "/Volumes/Extreme SSD/dfki/2026/Culture_puzzles/vector_analysis/results/analysis"
+  va_plot_dir:            "/Volumes/Extreme SSD/dfki/2026/Culture_puzzles/vector_analysis/results/plots"
 
 # =============================================================================
 # lang_region registry (variety-aware). null = that source is unavailable.
