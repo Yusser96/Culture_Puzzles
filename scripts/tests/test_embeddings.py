@@ -98,6 +98,11 @@ class TestStructureMetrics(unittest.TestCase):
         emb, groups = _two_clusters()
         r = cluster_embeddings(emb, n_clusters=2, group_map=groups)
         self.assertAlmostEqual(r["ari"], 1.0, places=5)
+        # New contract: linkage matrix and labels are returned for dendrogram rendering
+        self.assertIn("linkage", r)
+        self.assertGreater(len(r["linkage"]), 0)
+        self.assertIn("labels", r)
+        self.assertGreater(len(r["labels"]), 0)
 
 
 import importlib.util

@@ -20,6 +20,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
+from scipy.cluster.hierarchy import dendrogram
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 from shared_utils.data import load_config, ensure_dirs, setup_logging, save_json
@@ -92,6 +93,14 @@ def analyze_source(name, store_dir, analysis_dir, plot_dir):
     _write_csv(os.path.join(analysis_dir, f"embedding_clusters_{name}.csv"),
                ["key", "cluster", "group"],
                [[k, clu["assignments"][k], groups.get(k, "UNKNOWN")] for k in labels])
+
+    # Dendrogram (fig3)
+    plt.figure(figsize=(9, 5))
+    dendrogram(np.asarray(clu["linkage"]), labels=clu["labels"], leaf_font_size=6)
+    plt.title(f"Embedding clustering: {name}"); plt.tight_layout()
+    for ext in ("png", "pdf"):
+        plt.savefig(os.path.join(plot_dir, f"emb_fig3_dendrogram_{name}.{ext}"))
+    plt.close()
 
     s = structure_score(emb, groups)
     return {"source": name, "silhouette": s["silhouette"],

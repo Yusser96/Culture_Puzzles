@@ -110,4 +110,5 @@ def cluster_embeddings(emb_by_key, n_clusters, group_map):
     assignments = dict(zip(labels, res["cluster_labels"]))
     true = [group_map[k] for k in labels]
     scores = cluster_agreement_scores([assignments[k] for k in labels], true)
-    return {"assignments": assignments, **scores}
+    return {"assignments": assignments, **scores,
+            "linkage": res["linkage_matrix"], "labels": labels}
