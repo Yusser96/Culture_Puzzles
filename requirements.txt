@@ -1,0 +1,23 @@
+# =============================================================================
+# Culture_Puzzles pipeline requirements
+# =============================================================================
+
+# --- Data collection (01 puzzles / 02 parallel / 03 topics) ---
+openpyxl          # 01: read riddle .xlsx files
+PyYAML            # config loading
+datasets          # 02: FLORES-200 / OPUS-100
+Wikipedia-API==0.6.0  # 03: Wikipedia fetching (import: wikipediaapi). 0.6.0 = last Py3.9-compatible release
+
+# --- Vector computation (04, GPU machine) ---
+numpy
+torch
+transformers      # Qwen3 support requires a recent version
+nnsight           # NNsight activation extraction
+tqdm
+
+# --- Analysis & plots (05, 06) ---
+scipy
+scikit-learn
+pandas
+matplotlib
+seaborn

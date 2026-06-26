@@ -1,0 +1,30 @@
+# --- Secrets (env.sh holds API keys — never commit) ---
+env.sh
+.env
+
+# --- Python venv & caches ---
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# --- Source benchmark data (do not upload) ---
+v0 - due May 29/
+*.xlsx
+
+# --- Generated pipeline outputs ---
+scripts/vector_analysis/results/
+outputs/
+**/results/data/
+**/results/vectors/
+
+# --- HuggingFace / model caches ---
+.cache/
+hf_cache/
+
+# --- Editor / OS ---
+.DS_Store
+.idea/
+.vscode/
+.claude/

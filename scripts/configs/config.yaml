@@ -1,0 +1,368 @@
+# =============================================================================
+# Configuration for Culture Vector Analysis Pipeline
+# =============================================================================
+
+model:
+  name: "Qwen/Qwen3-8B"
+  # Layers to extract activations from. "all" for every layer.
+  # Or specify a list like [0, 4, 8, 12, 16, 20, 24, 28, 31]
+  layers: "all"
+  batch_size: 4
+  max_seq_len: 128
+  device: "cuda"
+  dtype: "float16"  # float16 or bfloat16
+
+# =============================================================================
+# Languages (18 total: original 10 + 8 new for BLEnD coverage)
+# =============================================================================
+languages:
+  # ── Original 10 ──
+  - code: "en"
+    name: "English"
+    flores: "eng_Latn"
+    wiki: "en"
+  - code: "fr"
+    name: "French"
+    flores: "fra_Latn"
+    wiki: "fr"
+  - code: "de"
+    name: "German"
+    flores: "deu_Latn"
+    wiki: "de"
+  - code: "ar"
+    name: "Arabic"
+    flores: "arb_Arab"
+    wiki: "ar"
+  - code: "zh"
+    name: "Chinese"
+    flores: "zho_Hans"
+    wiki: "zh"
+  - code: "ja"
+    name: "Japanese"
+    flores: "jpn_Jpan"
+    wiki: "ja"
+  - code: "hi"
+    name: "Hindi"
+    flores: "hin_Deva"
+    wiki: "hi"
+  - code: "es"
+    name: "Spanish"
+    flores: "spa_Latn"
+    wiki: "es"
+  - code: "ru"
+    name: "Russian"
+    flores: "rus_Cyrl"
+    wiki: "ru"
+  - code: "ko"
+    name: "Korean"
+    flores: "kor_Hang"
+    wiki: "ko"
+  # ── New 8 (BLEnD coverage) ──
+  - code: "el"
+    name: "Greek"
+    flores: "ell_Grek"
+    wiki: "el"
+  - code: "fa"
+    name: "Persian"
+    flores: "pes_Arab"
+    wiki: "fa"
+  - code: "id"
+    name: "Indonesian"
+    flores: "ind_Latn"
+    wiki: "id"
+  - code: "am"
+    name: "Amharic"
+    flores: "amh_Ethi"
+    wiki: "am"
+  - code: "az"
+    name: "Azerbaijani"
+    flores: "azj_Latn"
+    wiki: "az"
+  - code: "ha"
+    name: "Hausa"
+    flores: "hau_Latn"
+    wiki: "ha"
+  - code: "su"
+    name: "Sundanese"
+    flores: "sun_Latn"
+    wiki: "su"
+  - code: "as"
+    name: "Assamese"
+    flores: "asm_Beng"
+    wiki: "as"
+
+# =============================================================================
+# Cultural topics (7 total: original 4 + 3 new for BLEnD coverage)
+# =============================================================================
+cultural_topics:
+  marriage:
+    description: "Marriage customs, wedding traditions, family structure"
+    queries:
+      en: ["Marriage", "Wedding", "Arranged marriage", "Marriage customs"]
+      fr: ["Mariage", "Noces", "Mariage arrangé", "Coutumes de mariage"]
+      de: ["Ehe", "Hochzeit", "Arrangierte Ehe", "Hochzeitsbräuche"]
+      ar: ["زواج", "عرس", "زواج تقليدي", "عادات الزواج"]
+      zh: ["婚姻", "婚礼", "包办婚姻", "婚俗"]
+      ja: ["結婚", "結婚式", "見合い結婚", "婚礼"]
+      hi: ["विवाह", "शादी", "अरेंज्ड मैरिज", "विवाह की रस्में"]
+      es: ["Matrimonio", "Boda", "Matrimonio concertado", "Costumbres matrimoniales"]
+      ru: ["Брак", "Свадьба", "Сватовство", "Свадебные обычаи"]
+      ko: ["결혼", "혼례", "중매결혼", "결혼 풍습"]
+      el: ["Γάμος", "Γαμήλια τελετή", "Προξενιό", "Γαμήλια έθιμα"]
+      fa: ["ازدواج", "عروسی", "ازدواج سنتی", "آداب ازدواج"]
+      id: ["Pernikahan", "Perkawinan", "Perjodohan", "Adat pernikahan"]
+      am: ["ጋብቻ", "ሰርግ", "የተደራጀ ጋብቻ", "የጋብቻ ልማዶች"]
+      az: ["Nikah", "Toy", "Görücü", "Toy adətləri"]
+      ha: ["Aure", "Bikin aure", "Auren soyayya", "Al'adun aure"]
+      su: ["Nikah", "Kawinan", "Perjodohan", "Adat kawinan"]
+      as: ["বিবাহ", "বিয়া", "যোৰা বিয়া", "বিয়াৰ ৰীতি-নীতি"]
+
+  religion:
+    description: "Religious practices, beliefs, places of worship"
+    queries:
+      en: ["Religion", "Prayer", "Religious festival", "Place of worship"]
+      fr: ["Religion", "Prière", "Fête religieuse", "Lieu de culte"]
+      de: ["Religion", "Gebet", "Religiöses Fest", "Gebetshaus"]
+      ar: ["دين", "صلاة", "عيد ديني", "مسجد"]
+      zh: ["宗教", "祈祷", "宗教节日", "寺庙"]
+      ja: ["宗教", "祈り", "宗教的な祭り", "寺院"]
+      hi: ["धर्म", "प्रार्थना", "धार्मिक त्योहार", "पूजा स्थल"]
+      es: ["Religión", "Oración", "Festividad religiosa", "Lugar de culto"]
+      ru: ["Религия", "Молитва", "Религиозный праздник", "Храм"]
+      ko: ["종교", "기도", "종교 축제", "예배당"]
+      el: ["Θρησκεία", "Προσευχή", "Θρησκευτική γιορτή", "Τόπος λατρείας"]
+      fa: ["دین", "نماز", "جشن مذهبی", "مسجد"]
+      id: ["Agama", "Doa", "Hari raya", "Tempat ibadah"]
+      am: ["ሃይማኖት", "ጸሎት", "ሃይማኖታዊ በዓል", "ቤተ ክርስቲያን"]
+      az: ["Din", "Namaz", "Dini bayram", "Məscid"]
+      ha: ["Addini", "Salla", "Bikin addini", "Masallaci"]
+      su: ["Agama", "Sholat", "Hari raya", "Tempat ibadah"]
+      as: ["ধৰ্ম", "প্ৰাৰ্থনা", "ধৰ্মীয় উৎসৱ", "পূজাস্থল"]
+
+  food:
+    description: "Cuisine, cooking traditions, food culture"
+    queries:
+      en: ["Cuisine", "Cooking", "Food culture", "Traditional food"]
+      fr: ["Cuisine française", "Gastronomie", "Culture alimentaire", "Cuisine traditionnelle"]
+      de: ["Deutsche Küche", "Kochen", "Esskultur", "Traditionelle Küche"]
+      ar: ["مطبخ عربي", "طبخ", "ثقافة الطعام", "أكلات تقليدية"]
+      zh: ["中国菜", "烹饪", "饮食文化", "传统美食"]
+      ja: ["日本料理", "調理", "食文化", "伝統料理"]
+      hi: ["भारतीय व्यंजन", "खाना पकाना", "खाद्य संस्कृति", "पारंपरिक भोजन"]
+      es: ["Gastronomía de España", "Cocina", "Cultura alimentaria", "Comida tradicional"]
+      ru: ["Русская кухня", "Кулинария", "Пищевая культура", "Традиционная кухня"]
+      ko: ["한국 요리", "요리", "음식 문화", "전통 음식"]
+      el: ["Ελληνική κουζίνα", "Μαγειρική", "Διατροφική κουλτούρα", "Παραδοσιακό φαγητό"]
+      fa: ["آشپزی ایرانی", "پخت و پز", "فرهنگ غذایی", "غذای سنتی"]
+      id: ["Masakan Indonesia", "Memasak", "Budaya kuliner", "Makanan tradisional"]
+      am: ["የኢትዮጵያ ምግብ", "ማብሰል", "የምግብ ባህል", "ባህላዊ ምግብ"]
+      az: ["Azərbaycan mətbəxi", "Aşpazlıq", "Qida mədəniyyəti", "Ənənəvi yeməklər"]
+      ha: ["Abincin Hausa", "Girki", "Al'adun abinci", "Abincin gargajiya"]
+      su: ["Masakan Sunda", "Masak", "Budaya kulinér", "Kadaharan tradisional"]
+      as: ["অসমীয়া ৰন্ধনশৈলী", "ৰান্ধনী", "খাদ্য সংস্কৃতি", "পৰম্পৰাগত খাদ্য"]
+
+  festivals:
+    description: "Cultural celebrations, holidays, ceremonies"
+    queries:
+      en: ["Festival", "Public holiday", "Cultural celebration", "National holiday"]
+      fr: ["Fête", "Jour férié en France", "Célébration culturelle", "Fête nationale"]
+      de: ["Volksfest", "Feiertag", "Kulturelle Feier", "Nationalfeiertag"]
+      ar: ["مهرجان", "عطلة رسمية", "احتفال ثقافي", "عيد وطني"]
+      zh: ["节日", "公共假日", "文化庆典", "国庆节"]
+      ja: ["祭り", "祝日", "文化的行事", "国民の祝日"]
+      hi: ["त्योहार", "सार्वजनिक अवकाश", "सांस्कृतिक उत्सव", "राष्ट्रीय पर्व"]
+      es: ["Festival", "Día festivo", "Celebración cultural", "Fiesta nacional"]
+      ru: ["Фестиваль", "Праздник", "Культурное празднование", "Национальный праздник"]
+      ko: ["축제", "공휴일", "문화 행사", "국경일"]
+      el: ["Φεστιβάλ", "Αργία", "Πολιτιστικός εορτασμός", "Εθνική εορτή"]
+      fa: ["جشنواره", "تعطیلات رسمی", "جشن فرهنگی", "عید ملی"]
+      id: ["Festival", "Hari libur nasional", "Perayaan budaya", "Hari kemerdekaan"]
+      am: ["ፌስቲቫል", "ብሔራዊ በዓል", "ባህላዊ ክብረ በዓል", "አገራዊ በዓል"]
+      az: ["Festival", "Bayram", "Mədəni bayram", "Milli bayram"]
+      ha: ["Biki", "Hutu", "Bikin al'ada", "Bikin kasa"]
+      su: ["Festival", "Poé libur nasional", "Pésta budaya", "Poé kamerdikaan"]
+      as: ["উৎসৱ", "ৰাজহুৱা বন্ধ", "সাংস্কৃতিক উদযাপন", "ৰাষ্ট্ৰীয় পৰ্ব"]
+
+  education:
+    description: "Education systems, schooling traditions, academic culture"
+    queries:
+      en: ["Education", "School", "Higher education", "Classroom"]
+      fr: ["Éducation", "École", "Enseignement supérieur", "Salle de classe"]
+      de: ["Bildung", "Schule", "Hochschulbildung", "Klassenzimmer"]
+      ar: ["تعليم", "مدرسة", "تعليم عالي", "فصل دراسي"]
+      zh: ["教育", "学校", "高等教育", "教室"]
+      ja: ["教育", "学校", "高等教育", "教室"]
+      hi: ["शिक्षा", "विद्यालय", "उच्च शिक्षा", "कक्षा"]
+      es: ["Educación", "Escuela", "Educación superior", "Aula"]
+      ru: ["Образование", "Школа", "Высшее образование", "Класс"]
+      ko: ["교육", "학교", "고등교육", "교실"]
+      el: ["Εκπαίδευση", "Σχολείο", "Ανώτατη εκπαίδευση", "Τάξη"]
+      fa: ["آموزش", "مدرسه", "آموزش عالی", "کلاس درس"]
+      id: ["Pendidikan", "Sekolah", "Pendidikan tinggi", "Ruang kelas"]
+      am: ["ትምህርት", "ትምህርት ቤት", "ከፍተኛ ትምህርት", "ክፍል"]
+      az: ["Təhsil", "Məktəb", "Ali təhsil", "Sinif otağı"]
+      ha: ["Ilimi", "Makaranta", "Ilimin gaba", "Aji"]
+      su: ["Pendidikan", "Sakola", "Pendidikan luhur", "Ruang kelas"]
+      as: ["শিক্ষা", "বিদ্যালয়", "উচ্চ শিক্ষা", "শ্ৰেণীকোঠা"]
+
+  sport:
+    description: "Sports culture, national sports, traditional games"
+    queries:
+      en: ["Sport", "National sport", "Traditional games", "Athletics"]
+      fr: ["Sport", "Sport national", "Jeux traditionnels", "Athlétisme"]
+      de: ["Sport", "Nationalsport", "Traditionelle Spiele", "Leichtathletik"]
+      ar: ["رياضة", "رياضة وطنية", "ألعاب تقليدية", "ألعاب القوى"]
+      zh: ["体育", "国家体育", "传统游戏", "田径"]
+      ja: ["スポーツ", "国技", "伝統的な遊び", "陸上競技"]
+      hi: ["खेल", "राष्ट्रीय खेल", "पारंपरिक खेल", "एथलेटिक्स"]
+      es: ["Deporte", "Deporte nacional", "Juegos tradicionales", "Atletismo"]
+      ru: ["Спорт", "Национальный спорт", "Традиционные игры", "Лёгкая атлетика"]
+      ko: ["스포츠", "국기", "전통 놀이", "육상"]
+      el: ["Αθλητισμός", "Εθνικό άθλημα", "Παραδοσιακά παιχνίδια", "Στίβος"]
+      fa: ["ورزش", "ورزش ملی", "بازی‌های سنتی", "دو و میدانی"]
+      id: ["Olahraga", "Olahraga nasional", "Permainan tradisional", "Atletik"]
+      am: ["ስፖርት", "ብሔራዊ ስፖርት", "ባህላዊ ጨዋታዎች", "አትሌቲክስ"]
+      az: ["İdman", "Milli idman", "Ənənəvi oyunlar", "Atletika"]
+      ha: ["Wasanni", "Wasan kasa", "Wasannin gargajiya", "Tsere"]
+      su: ["Olahraga", "Olahraga nasional", "Kaulinan tradisional", "Atlétik"]
+      as: ["খেল", "ৰাষ্ট্ৰীয় খেল", "পৰম্পৰাগত খেল", "এথলেটিক্স"]
+
+  work_life:
+    description: "Work culture, employment practices, work-life balance"
+    queries:
+      en: ["Employment", "Work-life balance", "Labor rights", "Workplace"]
+      fr: ["Emploi", "Équilibre travail-vie", "Droit du travail", "Lieu de travail"]
+      de: ["Beschäftigung", "Work-Life-Balance", "Arbeitsrecht", "Arbeitsplatz"]
+      ar: ["توظيف", "التوازن بين العمل والحياة", "حقوق العمال", "مكان العمل"]
+      zh: ["就业", "工作与生活平衡", "劳动权利", "职场"]
+      ja: ["雇用", "ワークライフバランス", "労働権", "職場"]
+      hi: ["रोज़गार", "कार्य-जीवन संतुलन", "श्रम अधिकार", "कार्यस्थल"]
+      es: ["Empleo", "Conciliación laboral", "Derechos laborales", "Lugar de trabajo"]
+      ru: ["Занятость", "Баланс работы и жизни", "Трудовые права", "Рабочее место"]
+      ko: ["고용", "워라밸", "노동권", "직장"]
+      el: ["Απασχόληση", "Ισορροπία εργασίας-ζωής", "Εργατικά δικαιώματα", "Χώρος εργασίας"]
+      fa: ["اشتغال", "تعادل کار و زندگی", "حقوق کار", "محیط کار"]
+      id: ["Pekerjaan", "Keseimbangan kerja", "Hak pekerja", "Tempat kerja"]
+      am: ["ቅጥር", "የሥራ-ሕይወት ሚዛን", "የሰራተኛ መብቶች", "የሥራ ቦታ"]
+      az: ["Məşğulluq", "İş-həyat balansı", "Əmək hüquqları", "İş yeri"]
+      ha: ["Aiki", "Daidaiton aiki da rayuwa", "Hakkin ma'aikata", "Wurin aiki"]
+      su: ["Pagawéan", "Kasaimbangan gawé-hirup", "Hak pagawé", "Tempat gawé"]
+      as: ["নিযুক্তি", "কৰ্ম-জীৱন ভাৰসাম্য", "শ্ৰম অধিকাৰ", "কৰ্মস্থলী"]
+
+# =============================================================================
+# Data collection settings
+# =============================================================================
+data:
+  parallel_samples_per_lang: 500
+  cultural_sentences_per_topic: 200
+  min_sentence_length: 10
+  max_sentence_length: 512
+
+# =============================================================================
+# Analysis settings
+# =============================================================================
+analysis:
+  seed: 42
+  n_pca_components: 3
+  significance_level: 0.05
+
+# =============================================================================
+# Steering experiment settings (BLEnD benchmark)
+# =============================================================================
+steering:
+  layers_to_steer: [3, 4, 5, 12, 16, 20]
+  alpha_range: [0.5, 1.0, 2.0, 4.0, 8.0]
+  max_new_tokens: 50
+  num_generations: 5
+  temperature: 0.7
+  llm_judge_model: "gpt-4o"
+  blend_languages: ["ar", "zh", "es", "ko", "en", "el", "fa", "id", "am", "az", "ha", "as"]
+
+# =============================================================================
+# Attribution patching settings
+# =============================================================================
+attribution:
+  n_sentence_pairs: 100
+  components: ["attn", "mlp"]
+  head_level: true
+  batch_size: 4
+
+# =============================================================================
+# Cross-analysis settings (Phase 4)
+# =============================================================================
+cross_analysis:
+  key_layers: [3, 5, 12, 20]
+  n_permutations: 10000
+  probe_n_sentences: 50
+  probe_cv_folds: 5
+  transfer_alpha: 4.0
+  transfer_layers: [5, 12, 20]
+  transfer_max_questions: 50   # max MCQ questions sampled per (topic, target_lang) condition
+  steering_matrix_alpha: [2.0, 4.0]
+  steering_matrix_n_prompts: 10
+  representative_langs: ["en", "ar", "zh", "hi", "ko", "fr", "am", "id"]
+
+language_families:
+  indo_european: ["en", "fr", "de", "es", "hi", "fa", "el", "ru", "as"]
+  sino_tibetan: ["zh"]
+  japonic: ["ja"]
+  koreanic: ["ko"]
+  afro_asiatic: ["ar", "am", "ha"]
+  austronesian: ["id", "su"]
+  turkic: ["az"]
+
+script_families:
+  latin: ["en", "fr", "de", "es", "id", "az", "ha", "su"]
+  arabic: ["ar", "fa"]
+  cjk: ["zh", "ja"]
+  devanagari: ["hi"]
+  cyrillic: ["ru"]
+  hangul: ["ko"]
+  greek: ["el"]
+  ethiopic: ["am"]
+  bengali: ["as"]
+
+# =============================================================================
+# Output paths (organized by experiment)
+# =============================================================================
+paths:
+  # ── Legacy (kept for backward compat) ──
+  output_dir: "outputs"
+  data_dir: "outputs/data"
+  parallel_dir: "outputs/data/parallel"
+  cultural_dir: "outputs/data/cultural"
+  vector_dir: "outputs/vectors"
+  language_vector_dir: "outputs/vectors/language_vectors"
+  topic_vector_dir: "outputs/vectors/topic_vectors"
+  analysis_dir: "outputs/analysis"
+  plot_dir: "outputs/plots"
+  steering_dir: "outputs/steering"
+
+  # ── Vector Analysis ──
+  va_data_dir: "vector_analysis/results/data"
+  va_parallel_dir: "vector_analysis/results/data/parallel"
+  va_cultural_dir: "vector_analysis/results/data/cultural"
+  va_vector_dir: "vector_analysis/results/vectors"
+  va_language_vector_dir: "vector_analysis/results/vectors/language_vectors"
+  va_topic_vector_dir: "vector_analysis/results/vectors/topic_vectors"
+  va_analysis_dir: "vector_analysis/results/analysis"
+  va_plot_dir: "vector_analysis/results/plots"
+
+  # ── Steering (BLEnD) ──
+  steering_data_dir: "steering/results/data"
+  steering_mcqa_dir: "steering/results/mcqa"
+  steering_saq_dir: "steering/results/saq"
+  steering_judge_dir: "steering/results/judge"
+  steering_analysis_dir: "steering/results/analysis"
+  steering_plot_dir: "steering/results/plots"
+
+  # ── Attribution Patching ──
+  ap_patching_dir: "attribution_patching/results/patching"
+  ap_analysis_dir: "attribution_patching/results/analysis"
+  ap_plot_dir: "attribution_patching/results/plots"
+
+  # ── Cross Analysis (Phase 4) ──
+  ca_analysis_dir: "cross_analysis/results/analysis"
+  ca_plot_dir: "cross_analysis/results/plots"
+  ca_external_dir: "cross_analysis/results/external_data"
+  ca_probe_dir: "cross_analysis/results/probes"
