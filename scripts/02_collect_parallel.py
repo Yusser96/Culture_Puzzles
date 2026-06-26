@@ -106,11 +106,20 @@ def collect_opus_by_code(cfg: dict, codes: set) -> Dict[str, List[str]]:
     for code in sorted(c for c in codes if c and c != "en"):
         pair_sorted = "-".join(sorted(["en", code]))
         logger.info(f"  OPUS-100 pair: {pair_sorted}")
-        try:
-            ds = load_dataset("opus100", pair_sorted, split="test", trust_remote_code=True,
-                              token=os.environ.get("HF_TOKEN"))
-        except Exception as e:
-            logger.warning(f"    Could not load {pair_sorted}: {e}")
+        # Most pairs have a "test" split; some (e.g. en-yo) only ship "train".
+        ds = None
+        for split in ("test", "dev", "train"):
+            try:
+                ds = load_dataset("opus100", pair_sorted, split=split,
+                                  token=os.environ.get("HF_TOKEN"))
+                break
+            except Exception as e:
+                if "split" in str(e).lower():
+                    continue  # try the next split
+                logger.warning(f"    Could not load {pair_sorted}: {e}")
+                break
+        if ds is None:
+            logger.warning(f"    Could not load {pair_sorted} (no usable split)")
             continue
 
         sents, en_sents = [], []

@@ -48,10 +48,20 @@ def sentence_split(text: str) -> List[str]:
 
 
 def fetch_article(wiki, title: str, max_chars: int = 50000) -> str:
-    page = wiki.page(title)
-    if not page.exists():
-        return ""
-    return page.text[:max_chars]
+    # Wikipedia's API can intermittently return non-JSON/HTML (rate limits,
+    # transient errors); retry briefly then give up gracefully.
+    for attempt in range(3):
+        try:
+            page = wiki.page(title)
+            if not page.exists():
+                return ""
+            return page.text[:max_chars]
+        except Exception as e:  # noqa: BLE001 - any network/parse error -> retry/skip
+            if attempt == 2:
+                logger.warning(f"      fetch failed for '{title}': {e}")
+                return ""
+            time.sleep(1.0 * (attempt + 1))
+    return ""
 
 
 def collect_topic_for_wiki(topic_cfg, wiki_code, n_sentences) -> List[str]:
@@ -108,7 +118,11 @@ def main():
         os.makedirs(topic_dir, exist_ok=True)
 
         for wiki_code in wiki_codes:
-            sentences = collect_topic_for_wiki(topic_cfg, wiki_code, n_sentences)
+            try:
+                sentences = collect_topic_for_wiki(topic_cfg, wiki_code, n_sentences)
+            except Exception as e:  # noqa: BLE001 - never let one edition kill the run
+                logger.warning(f"  [{wiki_code}] collection failed: {e}; skipping.")
+                sentences = []
             regions = regions_by_wiki[wiki_code]
             logger.info(f"  [{wiki_code:<6}] {len(sentences)} sentences "
                         f"-> {len(regions)} region(s)")

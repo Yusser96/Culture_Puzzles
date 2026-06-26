@@ -25,6 +25,8 @@ hf_cache/
 
 # --- Editor / OS ---
 .DS_Store
+*alias
+scripts/vector_analysis alias
 .idea/
 .vscode/
 .claude/

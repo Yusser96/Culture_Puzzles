@@ -13,7 +13,7 @@
 # =============================================================================
 
 model:
-  name: "Qwen/Qwen3-8B"
+  name: "Qwen/Qwen3-1.7B"
   # Layers to extract activations from. "all" for every layer.
   # Or specify a list like [0, 4, 8, 12, 16, 20, 24, 28, 31]
   layers: "all"

@@ -4,7 +4,9 @@
 #   ./pipeline.sh                       # run: puzzles parallel topics vectors
 #   ./pipeline.sh puzzles               # run a single stage
 #   ./pipeline.sh topics vectors        # run a subset, in the given order
+#   ./pipeline.sh collect               # data collection only (puzzles parallel topics)
 #   ./pipeline.sh all                   # run everything incl. analyze + plots
+#   ./pipeline.sh --config configs/riddles_config_1.7b.yaml vectors   # alt config
 #
 # Stage names: puzzles parallel topics vectors analyze plots  (or 01..06)
 set -euo pipefail
@@ -36,11 +38,23 @@ script_for() {
   esac
 }
 
+# Optional config override (must precede stage names):
+#   ./pipeline.sh --config configs/riddles_config_1.7b.yaml vectors
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --config=*) CONFIG="${1#*=}"; shift ;;
+    --config|-c) CONFIG="$2"; shift 2 ;;
+    *) break ;;
+  esac
+done
+
 # Determine stages to run.
 if [ "$#" -eq 0 ]; then
   STAGES="puzzles parallel topics vectors"
 elif [ "$1" = "all" ]; then
   STAGES="puzzles parallel topics vectors analyze plots"
+elif [ "$1" = "collect" ]; then
+  STAGES="puzzles parallel topics"          # data collection only (no vectors)
 else
   STAGES="$*"
 fi
@@ -55,6 +69,7 @@ for s in $STAGES; do
 done
 
 cd "$ROOT/scripts"
+echo "Config: $CONFIG"
 for s in $STAGES; do
   script="$(script_for "$s")"
   echo ""

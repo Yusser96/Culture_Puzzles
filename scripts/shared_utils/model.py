@@ -47,7 +47,11 @@ def get_model_and_tokenizer(cfg: dict):
 
     model_name = cfg["model"]["name"]
     dtype_str = cfg["model"].get("dtype", "float16")
-    dtype = torch.float16 if dtype_str == "float16" else torch.bfloat16
+    dtype = {
+        "float16": torch.float16,
+        "bfloat16": torch.bfloat16,
+        "float32": torch.float32,
+    }.get(dtype_str, torch.float16)
     device = cfg["model"]["device"]
 
     model = LanguageModel(
