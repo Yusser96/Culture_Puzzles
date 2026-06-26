@@ -11,6 +11,20 @@ import torch
 from tqdm import tqdm
 
 
+def get_embedding_module(model):
+    """Return the token-embedding module/envoy (embed_tokens), with fallbacks."""
+    if hasattr(model, "model") and hasattr(model.model, "embed_tokens"):
+        return model.model.embed_tokens
+    inner = getattr(model, "_model", None)
+    if inner is not None and hasattr(inner, "model") and hasattr(inner.model, "embed_tokens"):
+        return inner.model.embed_tokens
+    if hasattr(model, "get_input_embeddings"):
+        emb = model.get_input_embeddings()
+        if emb is not None:
+            return emb
+    raise RuntimeError(f"Cannot locate embedding module on {type(model)}")
+
+
 def extract_activations_batch(
     model,
     tokenizer,
@@ -19,13 +33,15 @@ def extract_activations_batch(
     max_seq_len: int = 128,
     batch_size: int = 4,
     desc: str = "Batches",
+    include_embedding: bool = False,
 ) -> Dict[int, np.ndarray]:
     """
     Extract mean residual-stream activations for each layer.
 
     Returns {layer_idx: np.ndarray of shape (num_sentences, hidden_dim)}.
     """
-    layer_activations = {l: [] for l in layers}
+    probe_keys = list(layers) + (["embed"] if include_embedding else [])
+    layer_activations = {k: [] for k in probe_keys}
 
     for i in tqdm(range(0, len(sentences), batch_size), desc=desc, leave=False):
         batch = sentences[i : i + batch_size]
@@ -45,9 +61,11 @@ def extract_activations_batch(
             for layer_idx in layers:
                 hidden = model.model.layers[layer_idx].output
                 saved[layer_idx] = hidden.save()
+            if include_embedding:
+                saved["embed"] = get_embedding_module(model).output.save()
 
         attention_mask = attention_mask.unsqueeze(-1)
-        for layer_idx in layers:
+        for layer_idx in probe_keys:
             hidden = saved[layer_idx]
             mask = attention_mask.to(hidden.device)
 
@@ -63,7 +81,7 @@ def extract_activations_batch(
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
-    for l in layers:
+    for l in probe_keys:
         if layer_activations[l]:
             layer_activations[l] = np.stack(layer_activations[l], axis=0)
         else:
