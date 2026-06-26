@@ -60,5 +60,45 @@ class TestEmbeddingStore(unittest.TestCase):
         self.assertEqual(meta["groups"]["lang_Arabic_Egypt"], "Arabic")
 
 
+from shared_utils.embeddings import structure_score, depth_structure, cluster_embeddings
+
+
+def _two_clusters():
+    # 3 vectors near +x, 3 near -x in 4-D -> two clear groups
+    base = {
+        "a1": np.array([1., 0, 0, 0]), "a2": np.array([0.9, 0.1, 0, 0]),
+        "a3": np.array([0.95, 0, 0.1, 0]),
+        "b1": np.array([-1., 0, 0, 0]), "b2": np.array([-0.9, 0.1, 0, 0]),
+        "b3": np.array([-0.95, 0, 0.1, 0]),
+    }
+    groups = {"a1": "A", "a2": "A", "a3": "A", "b1": "B", "b2": "B", "b3": "B"}
+    return base, groups
+
+
+class TestStructureMetrics(unittest.TestCase):
+    def test_structure_score_separable(self):
+        emb, groups = _two_clusters()
+        s = structure_score(emb, groups)
+        self.assertGreater(s["silhouette"], 0.5)
+        self.assertGreater(s["within_minus_cross"], 0.5)
+        self.assertEqual(s["n"], 6)
+
+    def test_structure_score_too_few(self):
+        s = structure_score({"a": np.ones(4), "b": np.ones(4)}, {"a": "A", "b": "B"})
+        self.assertIsNone(s["silhouette"])
+
+    def test_depth_structure_orders_embed_first(self):
+        emb, groups = _two_clusters()
+        by_layer = {0: emb, "embed": emb}
+        rows = depth_structure(by_layer, groups)
+        self.assertEqual(rows[0]["layer"], "embed")
+        self.assertEqual(rows[1]["layer"], "0")
+
+    def test_cluster_recovers_groups(self):
+        emb, groups = _two_clusters()
+        r = cluster_embeddings(emb, n_clusters=2, group_map=groups)
+        self.assertAlmostEqual(r["ari"], 1.0, places=5)
+
+
 if __name__ == "__main__":
     unittest.main()

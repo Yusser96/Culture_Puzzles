@@ -13,6 +13,8 @@ from typing import Dict, List
 import numpy as np
 
 from shared_utils.data import save_json, load_json
+from shared_utils.vectors import cosine_similarity, pairwise_distance_matrix
+from shared_utils.clustering import hierarchical_cluster, cluster_agreement_scores
 
 
 def _layer_label(layer) -> str:
@@ -59,3 +61,53 @@ def load_embedding_store(store_dir):
         z = np.load(os.path.join(store_dir, fn))
         by_layer[label] = {k: z[k] for k in z.files}
     return by_layer, meta
+
+
+def structure_score(emb_by_key, group_map):
+    keys = [k for k in sorted(emb_by_key) if k in group_map]
+    if len(keys) < 3:
+        return {"silhouette": None, "within_minus_cross": None, "n": len(keys)}
+    X = np.stack([np.asarray(emb_by_key[k], dtype=float) for k in keys])
+    groups = [group_map[k] for k in keys]
+
+    sil = None
+    if len(set(groups)) >= 2 and len(keys) > len(set(groups)):
+        try:
+            from sklearn.metrics import silhouette_score
+            sil = float(silhouette_score(X, groups, metric="cosine"))
+        except Exception:
+            sil = None
+
+    wi = wc = cr = cc = 0.0
+    for i in range(len(keys)):
+        for j in range(i + 1, len(keys)):
+            c = cosine_similarity(X[i], X[j])
+            if groups[i] == groups[j]:
+                wi += c; wc += 1
+            else:
+                cr += c; cc += 1
+    wmc = (wi / wc - cr / cc) if wc and cc else None
+    return {"silhouette": sil, "within_minus_cross": wmc, "n": len(keys)}
+
+
+def _layer_sort_key(label):
+    return (0, -1) if label == "embed" else (1, int(label))
+
+
+def depth_structure(by_layer, group_map):
+    rows = []
+    for label in sorted(by_layer, key=_layer_sort_key):
+        s = structure_score(by_layer[label], group_map)
+        rows.append({"layer": "embed" if label == "embed" else str(label), **s})
+    return rows
+
+
+def cluster_embeddings(emb_by_key, n_clusters, group_map):
+    keys = [k for k in sorted(emb_by_key) if k in group_map]
+    vecs = {k: np.asarray(emb_by_key[k], dtype=float) for k in keys}
+    dm, labels = pairwise_distance_matrix(vecs, metric="cosine")
+    res = hierarchical_cluster(dm, labels, n_clusters=min(n_clusters, len(labels)))
+    assignments = dict(zip(labels, res["cluster_labels"]))
+    true = [group_map[k] for k in labels]
+    scores = cluster_agreement_scores([assignments[k] for k in labels], true)
+    return {"assignments": assignments, **scores}
