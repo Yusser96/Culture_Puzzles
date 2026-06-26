@@ -58,11 +58,13 @@ def extract_activations_batch(
 
         saved = {}
         with model.trace(input_ids, attention_mask=attention_mask):
+            # embed_tokens runs before the transformer blocks; NNsight requires
+            # accessing outputs in execution order, so capture the embedding first.
+            if include_embedding:
+                saved["embed"] = get_embedding_module(model).output.save()
             for layer_idx in layers:
                 hidden = model.model.layers[layer_idx].output
                 saved[layer_idx] = hidden.save()
-            if include_embedding:
-                saved["embed"] = get_embedding_module(model).output.save()
 
         attention_mask = attention_mask.unsqueeze(-1)
         for layer_idx in probe_keys:
