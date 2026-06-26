@@ -7,11 +7,20 @@ parallel text, and Wikipedia topic text.
 ## Setup
 
 ```bash
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-cp env.sh.example env.sh   # then fill in HF_TOKEN / OPENAI_API_KEY
-source env.sh
+./setup.sh                 # creates .venv, installs requirements, seeds env.sh
+# then edit env.sh -> fill in HF_TOKEN / OPENAI_API_KEY
 ```
+
+## Run
+
+```bash
+./pipeline.sh              # puzzles -> parallel -> topics -> vectors
+./pipeline.sh puzzles      # a single stage
+./pipeline.sh topics vectors   # a subset, in order
+./pipeline.sh all          # everything incl. analyze + plots
+```
+
+Both scripts use `.venv` and `source env.sh` automatically.
 
 > FLORES (`facebook/flores`) is a **gated** HF dataset: the `HF_TOKEN` account must
 > accept its terms, or `02` returns 403 (it skips gracefully).
