@@ -8,7 +8,7 @@
 #   ./pipeline.sh all                   # run everything incl. analyze + plots
 #   ./pipeline.sh --config configs/riddles_config_1.7b.yaml vectors   # alt config
 #
-# Stage names: puzzles parallel topics vectors analyze plots  (or 01..06)
+# Stage names: puzzles parallel topics vectors analyze plots embed-analysis  (or 01..07)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -34,6 +34,7 @@ script_for() {
     vectors|04)  echo "04_compute_vectors.py" ;;
     analyze|05)  echo "05_analyze_vectors.py" ;;
     plots|06)    echo "06_generate_plots.py" ;;
+    embed-analysis|07) echo "07_analyze_embeddings.py" ;;
     *)           echo "" ;;
   esac
 }
@@ -63,7 +64,7 @@ fi
 for s in $STAGES; do
   if [ -z "$(script_for "$s")" ]; then
     echo "Unknown stage: '$s'" >&2
-    echo "Valid: puzzles parallel topics vectors analyze plots (or 01..06)" >&2
+    echo "Valid: puzzles parallel topics vectors analyze plots embed-analysis (or 01..07)" >&2
     exit 2
   fi
 done
