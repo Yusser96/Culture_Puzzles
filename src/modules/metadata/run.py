@@ -17,6 +17,25 @@ def _default_config() -> str:
     return os.path.join(here, "..", "..", "configs", "config.yaml")
 
 
+def run(cfg):
+    """
+    Build and save the unified metadata table.
+
+    Parameters
+    ----------
+    cfg : dict
+        Pipeline configuration dict with keys:
+        - paths: dict with 'metadata' path for output
+    """
+    from src.shared_utils.store import MetadataTable
+    from src.modules.metadata.build import build_metadata
+
+    df = build_metadata(cfg, tokenizer=None)
+    out_path = cfg["paths"]["metadata"]
+    MetadataTable.save(df, out_path)
+    print(f"Saved {len(df):,} rows -> {out_path}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build the unified metadata table.")
     parser.add_argument(

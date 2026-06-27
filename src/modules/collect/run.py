@@ -18,6 +18,23 @@ def _default_config() -> str:
     return os.path.join(here, "..", "..", "configs", "config.yaml")
 
 
+def run(cfg):
+    """
+    Run the collect sub-pipeline with all collectors (puzzles, parallel, topics, sib200).
+
+    Parameters
+    ----------
+    cfg : dict
+        Pipeline configuration dict.
+    """
+    from src.modules.collect import puzzles, parallel, topics, sib200
+
+    puzzles.collect(cfg)
+    parallel.collect(cfg)
+    topics.collect(cfg)
+    sib200.collect(cfg)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run the collect sub-pipeline.")
     parser.add_argument(
