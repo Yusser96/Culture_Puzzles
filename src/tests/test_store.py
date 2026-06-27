@@ -22,3 +22,19 @@ class TestStore(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestStoreSlashModel(unittest.TestCase):
+    def test_slash_model_name_roundtrips(self):
+        import tempfile, os
+        import numpy as np
+        from src.shared_utils.store import ActivationStore
+        with tempfile.TemporaryDirectory() as d:
+            s = ActivationStore(d)
+            s.save_index("Qwen/Qwen3-1.7B", ["a", "b"])
+            s.save_layer("Qwen/Qwen3-1.7B", "mean_content", "embed", np.ones((2, 3)))
+            self.assertEqual(s.models(), ["Qwen__Qwen3-1.7B"])
+            # load via the original slashed name and via the sanitized name both work
+            self.assertEqual(s.load_index("Qwen/Qwen3-1.7B"), ["a", "b"])
+            self.assertEqual(s.load_index("Qwen__Qwen3-1.7B"), ["a", "b"])
+            self.assertIn("embed", s.layers("Qwen__Qwen3-1.7B", "mean_content"))
