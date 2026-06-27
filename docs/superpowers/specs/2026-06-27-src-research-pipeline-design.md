@@ -20,7 +20,7 @@ that implements the change plan end-to-end (all of P0–P3) and runs on its own
 - A self-contained `src/` package: own `configs/`, `shared_utils/`, a `modules/`
   sub-package **per research step**, one CLI; **no imports from `scripts/`**.
 - Implement every change-plan item fully: collection (+SIB-200, +FLORES aligned IDs),
-  unified metadata, multi-readout all-layer extraction across 3 model families, per-layer
+  unified metadata, multi-readout all-layer extraction from a **decoder-only LLM**, per-layer
   standardization + centering variants, probing + held-out transfer, direction analysis,
   cross-language/region/topic analysis, FLORES decomposition, representational similarity,
   steering + reliability, data stats, and a report step.
@@ -62,13 +62,12 @@ src/
 - `text.py` — `detect_script(text)`, `sentence_split(text)`, and
   `content_token_mask(tokenizer, text, answer_span=None)` → boolean mask excluding
   BOS/EOS/PAD and (for riddles) the reference-answer span. (§4)
-- `models.py` — `load_model(cfg, family)` for `decoder` (NNsight `LanguageModel`),
-  `encoder` (HF `AutoModel`, output_hidden_states), `sentence` (sentence-transformers).
-  Returns a uniform handle with `num_layers`, `hidden_size`, `family`.
+- `models.py` — `load_model(cfg, name)` loads a **decoder-only** LLM via NNsight
+  `LanguageModel`; returns a handle with `num_layers`, `hidden_size`. (decoder-only)
 - `extraction.py` — `extract(model_handle, texts, layers, readouts, tokenizer, masks)` →
   `{readout: {layer: ndarray(n, d)}}`; readouts ∈ {`mean_content`, `last_content`,
-  `embed`}; decoder uses NNsight trace (embed captured before blocks — known ordering
-  rule), encoder uses `hidden_states`, sentence uses `.encode`. (§3, §4)
+  `embed`}; uses the NNsight trace over the residual stream (embed captured before the
+  transformer blocks — known ordering rule). (§3, §4)
 - `normalize.py` — `fit_stats(H_train)`→`(mu_l, std_l)`; `standardize(H, mu, std)`;
   `center(H, group_ids)` for language/language_region/topic/source centering. Train-split
   stats only. (§6)
@@ -99,11 +98,10 @@ to config `paths` dirs.
    `text, source, topic, topic_canonical, topic_raw, language, region, language_region,
    script, domain, prompt_template, token_count, translation_group_id, split`. Maps the
    70 messy puzzle topics → 8 canonical via the topic map; assigns train/test split. (§7)
-3. **extract** — for each configured `(model_family, model)` run `extraction.extract`
-   over all layers + readouts; write the activation store. (§3, §4, §5)
-   *Note:* `decoder`/`encoder` yield per-layer readouts; the `sentence` family yields a
-   single pooled embedding stored as one pseudo-layer (`layer = "sentence"`), so downstream
-   steps treat layer labels as opaque.
+3. **extract** — for each configured decoder model run `extraction.extract` over all layers
+   + readouts; write the activation store. The config `models:` list may hold more than one
+   decoder model (e.g. Qwen3-8B for the GPU run, Qwen3-1.7B for local smoke); the store keys
+   on model name so results stay separated. (§3, §4, §5)
 4. **normalize** — fit per-layer train stats; emit standardized + centered representation
    variants (raw, language_centered, language_region_centered, topic_centered,
    source_centered) as derived views in the store. (§6)
@@ -123,7 +121,9 @@ to config `paths` dirs.
    `h = sentence + language + region + script + residual` (ANOVA via statsmodels / numpy
    least squares). Output `flores_decomposition.csv`. (§11)
 9. **rep_similarity** — CKA, SVCCA/PWCCA, Procrustes, RDMs, centroid cosine, subspace
-   angles across languages/datasets/layers. Output `cka_matrices/` + CSVs. (§12)
+   angles compared **across layers, languages, datasets, and representation variants within
+   the decoder model** (cross-model comparison is out of scope now that we are
+   decoder-only). Output `cka_matrices/` + CSVs. (§12)
 10. **steering** — activation addition/removal with α∈{−3,−2,−1,−0.5,0.5,1,2,3} on the
     decoder model for directions passing earlier gates; reliability diagnostics (contrast
     cosine, centroid distance, within-class variance, probe margin, cross-language/template
@@ -135,7 +135,7 @@ to config `paths` dirs.
 
 ## Config schema (`src/configs/config.yaml`)
 
-`models:` list of `{family, name}` (decoder Qwen3, encoder XLM-R/mBERT, sentence LaBSE/E5);
+`models:` list of decoder-only model names (e.g. `Qwen/Qwen3-8B`; optionally `Qwen/Qwen3-1.7B` for local smoke);
 `readouts: [mean_content, last_content, embed]`;
 `representations: [raw, language_centered, language_region_centered, topic_centered, source_centered]`;
 `probes: {kinds: [logistic, svm, diffmean], splits: [random, heldout_language, heldout_region, heldout_language_region, heldout_source, heldout_prompt]}`;
@@ -144,8 +144,8 @@ to config `paths` dirs.
 `data: {samples_per_*}`; `paths:` (raw_dir, metadata, store_dir, analysis_dir, plot_dir — SSD root, configurable).
 
 ## Error handling
-- Missing model family deps (sentence-transformers/encoder) → clear error naming the dep;
-  the step skips that family with a logged warning rather than aborting the whole run.
+- Model load failure (missing weights / OOM) → clear error naming the model and device;
+  do not silently continue.
 - Degenerate probe/similarity inputs (<2 classes, single group, zero-variance) → return
   null metric + warn (no crash).
 - Same-language shared-text regions → analysis steps detect identical corpora and **flag**
@@ -168,8 +168,8 @@ to config `paths` dirs.
 
 ## Dependencies (`src/requirements.txt`)
 Reuse: numpy, torch, transformers, nnsight, scipy, scikit-learn, pandas, matplotlib,
-openpyxl, datasets, wikipedia-api==0.6.0, tqdm, PyYAML. Add: `sentence-transformers`,
-`statsmodels`, `pyarrow` (parquet).
+openpyxl, datasets, wikipedia-api==0.6.0, tqdm, PyYAML. Add: `statsmodels` (ANOVA),
+`pyarrow` (parquet).
 
 ## Build order (informs the plan)
 shared_utils foundations → store/metadata → collect → extract → normalize → probes →
