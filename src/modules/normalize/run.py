@@ -52,34 +52,44 @@ def representation(store, meta, model, readout, layer, repname):
         raise ValueError(f"Unknown representation variant: {repname}")
 
 
-def run(cfg):
+def run(cfg, store=None, meta=None):
     """
-    Thin CLI that validates representations are computable.
+    Validation step: confirm all representations are computable for every
+    model/readout/layer in the store, and that the store index matches metadata.
 
     Args:
-        cfg: Configuration dict with 'store', 'meta', 'models', 'readouts', 'layers'
+        cfg: Configuration dict with cfg['paths']['store_dir'] and
+             cfg['paths']['metadata']; optional cfg['representations'] list.
+        store: Optional ActivationStore override (for testing).
+        meta:  Optional metadata DataFrame override (for testing).
     """
-    store = cfg.get("store")
-    meta = cfg.get("meta")
-    models = cfg.get("models", [])
-    readouts = cfg.get("readouts", [])
-    layers = cfg.get("layers", [])
-    representations = cfg.get("representations", ["raw", "language_centered"])
+    from src.shared_utils.io import setup_logging
+    from src.shared_utils.store import ActivationStore, MetadataTable
 
-    if not (store and meta is not None and models and readouts):
-        raise ValueError("Config must include: store, meta, models, readouts")
+    log = setup_logging("normalize")
 
-    # Validate that each representation can be loaded
-    for model in models:
-        for readout in readouts:
-            for layer in layers:
-                for repname in representations:
-                    try:
-                        representation(store, meta, model, readout, layer, repname)
-                    except Exception as e:
-                        print(
-                            f"Failed to load {model}/{readout}/{layer}/{repname}: {e}"
-                        )
-                        raise
+    if store is None:
+        store = ActivationStore(cfg["paths"]["store_dir"])
+    if meta is None:
+        meta = MetadataTable.load(cfg["paths"]["metadata"])
 
-    print("All representations loaded successfully")
+    reps = cfg.get("representations", ["raw"])
+
+    for model in store.models():
+        # Spec hard-error contract: store index must match metadata sample_ids.
+        idx = store.load_index(model)
+        if list(idx) != meta["sample_id"].tolist():
+            raise ValueError(
+                f"sample_id mismatch between store[{model}] and metadata "
+                f"({len(idx)} vs {len(meta)})"
+            )
+        for readout in store.readouts(model):
+            for layer in store.layers(model, readout):
+                for rep in reps:
+                    representation(store, meta, model, readout, layer, rep)  # must not raise
+        log.info(
+            f"[{model}] representations validated for "
+            f"{len(store.readouts(model))} readouts."
+        )
+
+    log.info("normalize validation complete.")
