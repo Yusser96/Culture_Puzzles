@@ -187,7 +187,7 @@ def _build_cultural(raw_dir: str, cfg: dict, tokenizer) -> List[dict]:
                     text = line.strip()
                     if not text:
                         continue
-                    sample_id = f"cultural/{region_key}/{i}"
+                    sample_id = f"cultural/{topic}/{region_key}/{i}"
                     rows.append(_row(
                         sample_id=sample_id,
                         text=text,
@@ -242,7 +242,7 @@ def _build_sib200(raw_dir: str, cfg: dict, tokenizer) -> List[dict]:
                     text = line.strip()
                     if not text:
                         continue
-                    sample_id = f"sib200/{lang_code}/{i}"
+                    sample_id = f"sib200/{topic}/{lang_code}/{i}"
                     rows.append(_row(
                         sample_id=sample_id,
                         text=text,
