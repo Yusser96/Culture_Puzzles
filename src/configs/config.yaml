@@ -14,3 +14,50 @@ paths:
   store_dir:    "/Volumes/Extreme SSD/dfki/2026/Culture_puzzles/src_results/store"
   analysis_dir: "/Volumes/Extreme SSD/dfki/2026/Culture_puzzles/src_results/analysis"
   plot_dir:     "/Volumes/Extreme SSD/dfki/2026/Culture_puzzles/src_results/plots"
+lang_regions:
+  - {key: "Arabic_Egypt",               base_language: "Arabic",     wiki: "arz",    flores: "arz_Arab", opus: "ar"}
+  - {key: "Arabic_Morocco",             base_language: "Arabic",     wiki: "ary",    flores: "ary_Arab", opus: "ar"}
+  - {key: "Arabic_Syria",               base_language: "Arabic",     wiki: "ar",     flores: "apc_Arab", opus: "ar"}
+  - {key: "Arabic_Sudan",               base_language: "Arabic",     wiki: "ar",     flores: "arb_Arab", opus: "ar"}
+  - {key: "Belarusian_Belarus",         base_language: "Belarusian", wiki: "be",     flores: "bel_Cyrl", opus: "be"}
+  - {key: "Bengali_Bangladesh",         base_language: "Bengali",    wiki: "bn",     flores: "ben_Beng", opus: "bn"}
+  - {key: "Bengali_India",              base_language: "Bengali",    wiki: "bn",     flores: "ben_Beng", opus: "bn"}
+  - {key: "Brazilian_Portuguese",       base_language: "Portuguese", wiki: "pt",     flores: "por_Latn", opus: "pt"}
+  - {key: "Bugisnese_Indonesia",        base_language: "Buginese",   wiki: "bug",    flores: "bug_Latn", opus: null}
+  - {key: "Bulgarian_Bulgaria",         base_language: "Bulgarian",  wiki: "bg",     flores: "bul_Cyrl", opus: "bg"}
+  - {key: "Cantonese_China",            base_language: "Cantonese",  wiki: "zh-yue", flores: "yue_Hant", opus: null}
+  - {key: "Chinese (Simplified)_China", base_language: "Chinese",    wiki: "zh",     flores: "zho_Hans", opus: "zh"}
+  - {key: "Chinese_China",              base_language: "Chinese",    wiki: "zh",     flores: "zho_Hans", opus: "zh"}
+  - {key: "Dutch_Netherlands",          base_language: "Dutch",      wiki: "nl",     flores: "nld_Latn", opus: "nl"}
+  - {key: "English_Canada",             base_language: "English",    wiki: "en",     flores: "eng_Latn", opus: null}
+  - {key: "English_USA",                base_language: "English",    wiki: "en",     flores: "eng_Latn", opus: null}
+  - {key: "French_France",              base_language: "French",     wiki: "fr",     flores: "fra_Latn", opus: "fr"}
+  - {key: "German_Germany",             base_language: "German",     wiki: "de",     flores: "deu_Latn", opus: "de"}
+  - {key: "Hungarian_Hungary",          base_language: "Hungarian",  wiki: "hu",     flores: "hun_Latn", opus: "hu"}
+  - {key: "Indonesian_Indonesia",       base_language: "Indonesian", wiki: "id",     flores: "ind_Latn", opus: "id"}
+  - {key: "Italian_Italy",              base_language: "Italian",    wiki: "it",     flores: "ita_Latn", opus: "it"}
+  - {key: "Konkani_India",              base_language: "Konkani",    wiki: "gom",    flores: null,       opus: null}
+  - {key: "Luganda_Uganda",             base_language: "Luganda",    wiki: "lg",     flores: "lug_Latn", opus: null}
+  - {key: "Lumasaba_Uganda",            base_language: "Lumasaba",   wiki: null,     flores: null,       opus: null}
+  - {key: "Lusoga_Uganda",              base_language: "Lusoga",     wiki: null,     flores: null,       opus: null}
+  - {key: "Malayalam_India",            base_language: "Malayalam",  wiki: "ml",     flores: "mal_Mlym", opus: "ml"}
+  - {key: "Marathi_India",              base_language: "Marathi",    wiki: "mr",     flores: "mar_Deva", opus: "mr"}
+  - {key: "Mongondow_Indonesia",        base_language: "Mongondow",  wiki: null,     flores: null,       opus: null}
+  - {key: "Nepali_Nepal",               base_language: "Nepali",     wiki: "ne",     flores: "npi_Deva", opus: "ne"}
+  - {key: "Persian_Iran",               base_language: "Persian",    wiki: "fa",     flores: "pes_Arab", opus: "fa"}
+  - {key: "Polish_Poland",              base_language: "Polish",     wiki: "pl",     flores: "pol_Latn", opus: "pl"}
+  - {key: "Portuguese_Portugal",        base_language: "Portuguese", wiki: "pt",     flores: "por_Latn", opus: "pt"}
+  - {key: "Runyankole_Uganda",          base_language: "Runyankole", wiki: null,     flores: null,       opus: null}
+  - {key: "Russian_Russia",             base_language: "Russian",    wiki: "ru",     flores: "rus_Cyrl", opus: "ru"}
+  - {key: "Serbian_Serbia",             base_language: "Serbian",    wiki: "sr",     flores: "srp_Cyrl", opus: "sr"}
+  - {key: "Sinhala_Sri Lanka",          base_language: "Sinhala",    wiki: "si",     flores: "sin_Sinh", opus: "si"}
+  - {key: "Spanish_Argentina",          base_language: "Spanish",    wiki: "es",     flores: "spa_Latn", opus: "es"}
+  - {key: "Spanish_Cuba",               base_language: "Spanish",    wiki: "es",     flores: "spa_Latn", opus: "es"}
+  - {key: "Spanish_Peru",               base_language: "Spanish",    wiki: "es",     flores: "spa_Latn", opus: "es"}
+  - {key: "Swahili_Kenya",              base_language: "Swahili",    wiki: "sw",     flores: "swh_Latn", opus: "sw"}
+  - {key: "Tamil_India",                base_language: "Tamil",      wiki: "ta",     flores: "tam_Taml", opus: "ta"}
+  - {key: "Telugu_India",               base_language: "Telugu",     wiki: "te",     flores: "tel_Telu", opus: "te"}
+  - {key: "Thai_Thailand",              base_language: "Thai",       wiki: "th",     flores: "tha_Thai", opus: "th"}
+  - {key: "Urdu_Pakistan",              base_language: "Urdu",       wiki: "ur",     flores: "urd_Arab", opus: "ur"}
+  - {key: "Uzbek_Uzbekistan",           base_language: "Uzbek",      wiki: "uz",     flores: "uzn_Latn", opus: "uz"}
+  - {key: "Yoruba_Nigeria",             base_language: "Yoruba",     wiki: "yo",     flores: "yor_Latn", opus: "yo"}
