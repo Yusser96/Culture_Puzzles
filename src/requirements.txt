@@ -1,0 +1,15 @@
+numpy
+torch
+transformers
+nnsight
+scipy
+scikit-learn
+pandas
+pyarrow
+statsmodels
+matplotlib
+datasets
+Wikipedia-API==0.6.0
+openpyxl
+tqdm
+PyYAML

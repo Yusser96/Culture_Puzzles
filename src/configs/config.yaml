@@ -1,0 +1,16 @@
+model: {layers: "all", batch_size: 4, max_seq_len: 128, device: "mps", dtype: "float16"}
+models: ["Qwen/Qwen3-1.7B"]
+readouts: ["mean_content", "last_content", "embed"]
+representations: ["raw", "language_centered", "language_region_centered", "topic_centered", "source_centered"]
+canonical_topics: ["politics", "kids_world", "national_heritage", "everyday_life", "sports", "geography", "arts", "history"]
+analysis: {seed: 42, n_pca_components: 3}
+probes:
+  kinds: ["logistic", "svm", "diffmean"]
+  splits: ["random", "heldout_language", "heldout_region", "heldout_language_region", "heldout_source", "heldout_prompt"]
+steering: {alpha: [-3, -2, -1, -0.5, 0.5, 1, 2, 3], max_new_tokens: 50}
+paths:
+  raw_dir:      "/Volumes/Extreme SSD/dfki/2026/Culture_puzzles/src_results/raw"
+  metadata:     "/Volumes/Extreme SSD/dfki/2026/Culture_puzzles/src_results/metadata.parquet"
+  store_dir:    "/Volumes/Extreme SSD/dfki/2026/Culture_puzzles/src_results/store"
+  analysis_dir: "/Volumes/Extreme SSD/dfki/2026/Culture_puzzles/src_results/analysis"
+  plot_dir:     "/Volumes/Extreme SSD/dfki/2026/Culture_puzzles/src_results/plots"
