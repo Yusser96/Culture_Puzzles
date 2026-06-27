@@ -42,3 +42,13 @@ def save_csv(path, header, rows):
     ensure_dir(os.path.dirname(path) or ".")
     with open(path, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f); w.writerow(header); w.writerows(rows)
+
+def save_sentences(sentences: List[str], path: str) -> None:
+    ensure_dir(os.path.dirname(path) or ".")
+    with open(path, "w", encoding="utf-8") as f:
+        for s in sentences:
+            f.write(s.strip() + "\n")
+
+def load_sentences(path: str) -> List[str]:
+    with open(path, encoding="utf-8") as f:
+        return [line.strip() for line in f if line.strip()]

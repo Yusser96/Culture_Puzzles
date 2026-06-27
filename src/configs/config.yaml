@@ -1,3 +1,52 @@
+# =============================================================================
+# Data collection settings (used by src/modules/collect/*)
+# =============================================================================
+data:
+  parallel_samples_per_lang: 500
+  topic_sentences_per_lang: 200
+  min_sentence_length: 10
+  max_sentence_length: 512
+  riddle_join: "  ||  "
+
+# =============================================================================
+# Topic vocabulary (from scripts/configs/riddles_config.yaml)
+# =============================================================================
+topic_label_map:
+  "Politics": politics
+  "Kid's World": kids_world
+  "National Heritage": national_heritage
+  "Everyday Life": everyday_life
+  "Sports": sports
+  "Geography": geography
+  "Arts": arts
+  "History": history
+
+cultural_topics:
+  politics:
+    description: "Politics, government, elections, civic life"
+    seed_en: ["Politics", "Government", "Election", "Politics of <country>"]
+  kids_world:
+    description: "Childhood, children's games, toys, school life"
+    seed_en: ["Childhood", "Children's games", "Toy", "Nursery rhyme"]
+  national_heritage:
+    description: "Cultural heritage, national symbols, folklore, traditions"
+    seed_en: ["Cultural heritage", "National symbol", "Folklore", "Tradition"]
+  everyday_life:
+    description: "Everyday life, daily routine, household, customs"
+    seed_en: ["Everyday life", "Daily life", "Household", "Custom (law)"]
+  sports:
+    description: "Sports culture, national sports, athletics, games"
+    seed_en: ["Sport", "National sport", "Athletics (physical culture)", "Traditional games"]
+  geography:
+    description: "Geography, landscapes, rivers, regions, landmarks"
+    seed_en: ["Geography", "Geography of <country>", "River", "Mountain"]
+  arts:
+    description: "The arts, music, visual arts, literature"
+    seed_en: ["The arts", "Music", "Visual arts", "Literature"]
+  history:
+    description: "History, historical events, ancient and modern"
+    seed_en: ["History", "History of <country>", "Ancient history", "Modern history"]
+
 model: {layers: "all", batch_size: 4, max_seq_len: 128, device: "mps", dtype: "float16"}
 models: ["Qwen/Qwen3-1.7B"]
 readouts: ["mean_content", "last_content", "embed"]
@@ -9,6 +58,7 @@ probes:
   splits: ["random", "heldout_language", "heldout_region", "heldout_language_region", "heldout_source", "heldout_prompt"]
 steering: {alpha: [-3, -2, -1, -0.5, 0.5, 1, 2, 3], max_new_tokens: 50}
 paths:
+  puzzles_src_dir: "../../v0 - due May 29"
   raw_dir:      "/Volumes/Extreme SSD/dfki/2026/Culture_puzzles/src_results/raw"
   metadata:     "/Volumes/Extreme SSD/dfki/2026/Culture_puzzles/src_results/metadata.parquet"
   store_dir:    "/Volumes/Extreme SSD/dfki/2026/Culture_puzzles/src_results/store"
