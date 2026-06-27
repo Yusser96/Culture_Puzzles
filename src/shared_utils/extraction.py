@@ -22,6 +22,13 @@ from src.shared_utils.text import content_token_offsets
 # Pure helpers
 # ---------------------------------------------------------------------------
 
+def _align_mask(raw_mask, seq_len):
+    """Align a per-text content mask (unpadded, untruncated) to a right-padded,
+    truncated batch row of length seq_len. Truncate then pad False on the right."""
+    m = list(raw_mask)[:seq_len]
+    return m + [False] * (seq_len - len(m))
+
+
 def _pool(hidden: np.ndarray, mask: np.ndarray, readout: str) -> np.ndarray:
     """
     Pool a batch of hidden states using a content-token boolean mask.
@@ -102,19 +109,9 @@ def extract(
             raise ValueError(f"Unknown readout {r!r}. Must be one of {valid_readouts}.")
 
     want_embed = "embed" in readouts
-    embed_readouts = [r for r in readouts if r != "embed"]
 
     # Accumulator: {readout: {layer_key: list of (D,) arrays}}
     accum: Dict[str, Dict] = {r: {} for r in readouts}
-    for r in readouts:
-        if r == "embed":
-            accum[r]["embed"] = []
-        for li in layers:
-            for r2 in readouts:
-                if r2 != "embed":
-                    accum[r2][li] = []
-    # rebuild cleanly
-    accum = {r: {} for r in readouts}
     for r in readouts:
         if r == "embed":
             accum[r]["embed"] = []
@@ -151,13 +148,8 @@ def extract(
         for i, (text, ans) in enumerate(zip(batch_texts, batch_answers)):
             raw_mask = content_token_offsets(tokenizer, text, ans)
             seq_len = input_ids.shape[1]
-            # raw_mask is for the unpadded encoding; pad/align to padded length
-            if len(raw_mask) >= seq_len:
-                aligned = raw_mask[:seq_len]
-            else:
-                # left-pad with False (padding tokens are not content)
-                pad_len = seq_len - len(raw_mask)
-                aligned = [False] * pad_len + list(raw_mask)
+            # raw_mask is for the unpadded encoding; align to right-padded batch length
+            aligned = _align_mask(raw_mask, seq_len)
             batch_content_masks.append(aligned)
         content_mask_np = np.array(batch_content_masks, dtype=bool)  # (B, S)
 

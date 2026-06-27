@@ -12,5 +12,14 @@ class TestExtractionShapes(unittest.TestCase):
         np.testing.assert_allclose(mean[0], [2., 2.])
         np.testing.assert_allclose(last[0], [3., 3.])
 
+class TestAlignMask(unittest.TestCase):
+    def test_shorter_mask_right_pads_false(self):
+        result = ext._align_mask([True, True, False], 5)
+        self.assertEqual(result, [True, True, False, False, False])
+
+    def test_longer_mask_truncated(self):
+        result = ext._align_mask([True] * 7, 4)
+        self.assertEqual(result, [True, True, True, True])
+
 if __name__ == "__main__":
     unittest.main()
