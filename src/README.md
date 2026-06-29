@@ -2,6 +2,20 @@
 
 This is a self-contained Python package implementing a 12-step neural representation analysis pipeline for multilingual cultural probing. The pipeline processes text through language models (LLMs) and performs a series of analyses to identify and characterize cultural direction vectors.
 
+## Quickstart
+
+```bash
+src/setup.sh                 # create repo-root .venv + install src/requirements.txt + seed env.sh
+# edit env.sh (HF_TOKEN for FLORES/SIB-200), then:
+src/pipeline.sh              # run the full pipeline in order
+src/pipeline.sh data         # group: collect metadata extract
+src/pipeline.sh analyze      # group: normalize..report
+src/pipeline.sh probes       # a single step
+src/pipeline.sh --config src/configs/smoke.yaml extract   # alternate config
+```
+
+`pipeline.sh` wraps the Python CLI (`python -m src.run <step>`); use the CLI directly for finer control. Both run from the repo root and use the repo-root `.venv`.
+
 ## Installation
 
 ### Requirements
