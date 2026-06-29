@@ -30,3 +30,8 @@ scripts/vector_analysis alias
 .idea/
 .vscode/
 .claude/
+
+# research scratch (intermediate paper-summary batches)
+research/_work/
+# top-level duplicate of research literature map
+/representational_analysis_steering_vectors_literature_map.xlsx
